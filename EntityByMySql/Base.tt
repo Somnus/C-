@@ -1,0 +1,64 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ output extension=".cs" #>
+<#@ Assembly Name="System.Core" #>
+<#@ Assembly Name="System.Windows.Forms" #>
+<#@ Assembly Name="MySql.Data.dll" #>
+<#@ Assembly Name="System.Data" #>
+<#@ Assembly Name="System" #>
+<#@ import namespace="System" #>
+<#@ import namespace="System.IO" #>
+<#@ import namespace="System.Diagnostics" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Collections" #>
+<#@ import namespace="System.Collections.Generic" #> 
+<#@ import namespace="MySql.Data" #>
+<#@ import namespace="MySql.Data.MySqlClient" #>
+
+//数据库基本信息设置
+<# 
+	string Server="localhost";
+	string UId="root";
+	string PWd="fxy19940923..";
+    string Db_Name="cxkdb";
+#>
+//获取数据库中各表基本数据
+<#
+    string conStr="server="+Server+";database="+Db_Name+";uid="+UId+";pwd="+PWd;
+    MySqlConnection con=new MySqlConnection(conStr);
+    con.Open();
+    MySqlParameter mp=new MySqlParameter("@db_name",Db_Name);
+    string sqlStr="select * from information_schema.COLUMNS where table_schema=@db_name ";
+    MySqlCommand cmd=new MySqlCommand(sqlStr,con);
+    cmd.Parameters.Add(mp);
+    MySqlDataReader dr = cmd.ExecuteReader();
+
+	var TableList=new List<string>();
+    var DetailList=new List<Tuple<string,string,string>>();
+    var TableName="";
+    while(dr.Read())
+    {
+        var Table=dr["TABLE_NAME"].ToString();
+        if(TableName==Table)
+        {
+            var Column=dr["COLUMN_NAME"].ToString();
+            var DataTypeOld=dr["DATA_TYPE"].ToString();
+            var DataType=DataTypeOld=="varchar"?"string":
+                (DataTypeOld=="int"?"int":
+                (DataTypeOld=="datetime"?"DateTime":
+                (DataTypeOld=="decimal"?"decimal":
+                (DataTypeOld=="char"?"string":
+                (DataTypeOld=="bit"?"Boolean":"string")))));
+            DetailList.Add(Tuple.Create(Table,DataType,Column));
+        }
+        else
+        {
+            TableList.Add(Table);
+        }
+        TableName=Table;
+    }
+#>
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Data;
