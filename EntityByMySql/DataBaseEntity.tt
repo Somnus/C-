@@ -1,0 +1,12 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ output extension=".cs" #>
+<#@  include file="Base.tt" #>
+
+namespace DataBaseEntity
+{
+<# foreach(var item in TableList) { #>
+    public class <#= item #>
+    {<# foreach(var detail in DetailList) {if( item == detail.Item1 ) { #> 
+        public <#=detail.Item2#> <#=detail.Item3#> { get; set; } 
+<#}}#>    }
+<# } #>}
